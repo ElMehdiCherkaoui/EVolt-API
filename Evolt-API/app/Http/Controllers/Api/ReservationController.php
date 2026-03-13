@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\UpdateStationAvailabilityJob;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,8 @@ class ReservationController extends Controller
             'estimated_duration_minutes' => $validate['estimated_duration_minutes'],
             'status' => $validate['status'],
         ]);
+
+        UpdateStationAvailabilityJob::dispatch($reservation->id)->delay($reservation->end_time);
 
         return response()->json([
             'message' => 'Reservation Created Successfuly',
@@ -92,6 +95,8 @@ class ReservationController extends Controller
         }
 
         $reservation->update($updateData);
+
+        UpdateStationAvailabilityJob::dispatch($reservation->id)->delay($reservation->end_time);
 
         return response()->json([
             'message' => 'Reservation updated',
